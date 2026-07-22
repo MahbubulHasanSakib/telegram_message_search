@@ -124,6 +124,95 @@ The application supports standard open-source `tg-export` CLI tool output and Te
 
 ---
 
+## 📥 How to Export Telegram Chat History Using Telethon
+
+To export your own Telegram group/channel message logs using a terminal command instead of the desktop client, you can use the following custom **Telethon** script:
+
+### **Step 1: Set up Telegram API Credentials**
+1. Visit **[my.telegram.org](https://my.telegram.org)** and log in.
+2. Go to **API development tools**.
+3. Create a new dummy application to get your **`API_ID`** and **`API_HASH`**.
+
+### **Step 2: Install Telethon**
+On your system, run:
+```bash
+pip install telethon
+```
+
+### **Step 3: Save and Run the Export Script**
+Create a Python script named `telegram_export.py` with the following content:
+
+```python
+import json
+from telethon.sync import TelegramClient
+
+# Replace with your credentials from my.telegram.org
+api_id = YOUR_API_ID
+api_hash = "YOUR_API_HASH"
+
+client = TelegramClient("session", api_id, api_hash)
+client.start()
+
+print("\nYour chats:\n")
+dialogs = list(client.iter_dialogs())
+
+for i, dialog in enumerate(dialogs, start=1):
+    print(f"{i}. {dialog.name}")
+
+choice = int(input("\nEnter chat number: "))
+entity = dialogs[choice - 1].entity
+
+chat_type = "group"
+if getattr(entity, "broadcast", False):
+    chat_type = "channel"
+
+result = {
+    "name": dialogs[choice - 1].name,
+    "type": chat_type,
+    "id": entity.id,
+    "messages": []
+}
+
+print("\nExporting...")
+for msg in client.iter_messages(entity, reverse=True):
+    # Sender name
+    sender_name = None
+    if msg.sender:
+        if getattr(msg.sender, "first_name", None):
+            sender_name = " ".join(
+                filter(None, [msg.sender.first_name, msg.sender.last_name])
+            )
+        elif getattr(msg.sender, "title", None):
+            sender_name = msg.sender.title
+
+    item = {
+        "id": msg.id,
+        "type": "message",
+        "date": msg.date.isoformat() if msg.date else None,
+        "from": sender_name,
+        "text": msg.text or ""
+    }
+
+    if msg.reply_to_msg_id:
+        item["reply_to_message_id"] = msg.reply_to_msg_id
+
+    result["messages"].append(item)
+
+with open("messages.json", "w", encoding="utf-8") as f:
+    json.dump(result, f, ensure_ascii=False, indent=2)
+
+print(f"\n✅ Exported {len(result['messages'])} messages.")
+print("Saved as messages.json")
+```
+
+Run the script:
+```bash
+python telegram_export.py
+```
+This will log you in, prompt you for the verification code sent to your Telegram app, and save the exported chat as `messages.json` ready for uploading!
+
+---
+
 ## 🚀 Quick Start for Reviewers & Recruiters
 
 You can run the entire application stack (Frontend, Backend API, PostgreSQL Database) with a **single command**:
