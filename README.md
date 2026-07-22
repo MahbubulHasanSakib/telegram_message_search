@@ -149,3 +149,26 @@ npm --prefix apps/backend run test
 npm --prefix apps/backend run build
 npm --prefix apps/frontend run build
 ```
+
+---
+
+## 🧠 How the AI Vector Search Works (Semantic Coordinate Mapping)
+
+To retrieve relevant messages without external LLM API cost or network latency, the search engine utilizes a **custom-engineered 384-dimensional semantic coordinate mapping model** paired with **Qdrant Vector DB**:
+
+1. **Category Clustering (Coordinate Spaces)**:
+   We partition the 384-dimensional space into specific semantic clusters representing threat categories:
+   - **💊 Drugs Cluster**: Dimensions `10` to `40`.
+   - **🦠 Malware & Threat Cluster**: Dimensions `50` to `80`.
+   - **💳 Suspicious & Fraud Cluster**: Dimensions `90` to `120`.
+
+2. **Spelling Hashing**:
+   All text characters are dynamically hashed across the remaining dimensions to handle spelling variations, grammar, and typos.
+
+3. **Cosine Similarity Search**:
+   - When a user searches for `"malware discussions"`, the query is projected into the vector space, creating a query vector where the **Malware Cluster (dimensions 50..80)** is highly active.
+   - Qdrant compares this query vector to all stored message vectors using the **Cosine Similarity** formula:
+     $$\text{Similarity Score} = \sum_{d=0}^{383} \left( \text{Query}[d] \times \text{Message}[d] \right)$$
+   - Messages containing words like `"ransomware"` or `"trojan"` share the same Category 2 dimensions. This alignment yields a high similarity score (e.g., **99.6%**), which surfaces them as top matches!
+   - Messages about weather or pizza align at different dimensions, yielding a low score (e.g. **19%**), and are automatically filtered out.
+
