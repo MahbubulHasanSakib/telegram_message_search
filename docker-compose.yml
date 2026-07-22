@@ -1,0 +1,68 @@
+services:
+  # ---------------------------------------------------
+  # PostgreSQL Database Service (Local Containerized)
+  # ---------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: telegram_search_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: telegram_search
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------
+  # NestJS Backend API Service
+  # ---------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: telegram_search_backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      FRONTEND_URL: http://localhost:3000
+      DATABASE_URL: "postgresql://postgres:postgrespassword@postgres:5432/telegram_search?sslmode=disable"
+      QDRANT_URL: "${QDRANT_URL:-https://xxx-xxx.qdrant.tech}"
+      QDRANT_API_KEY: "${QDRANT_API_KEY:-your-qdrant-api-key}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-gsk_your_groq_api_key}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
+
+  # ---------------------------------------------------
+  # Next.js 14/15 Frontend Web Service
+  # ---------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: telegram_search_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  backend_uploads:

@@ -1,0 +1,56 @@
+{
+  "name": "Darknet Intelligence & General Chat",
+  "type": "supergroup",
+  "id": 987654321,
+  "messages": [
+    {
+      "id": 1,
+      "type": "message",
+      "date": "2026-07-22T10:00:00",
+      "from": "Alex",
+      "text": "Anyone have samples for the new LockBit 3.0 ransomware payload?"
+    },
+    {
+      "id": 2,
+      "type": "message",
+      "date": "2026-07-22T10:05:00",
+      "from": "TraderJoe",
+      "text": "We have high purity cocaine, MDMA, and heroin in stock for delivery."
+    },
+    {
+      "id": 3,
+      "type": "message",
+      "date": "2026-07-22T10:10:00",
+      "from": "Sam",
+      "text": "Hey guys, what time does the football match start tonight?"
+    },
+    {
+      "id": 4,
+      "type": "message",
+      "date": "2026-07-22T10:15:00",
+      "from": "CryptoGhost",
+      "text": "Selling stolen credit card CVV batches and compromised bank accounts."
+    },
+    {
+      "id": 5,
+      "type": "message",
+      "date": "2026-07-22T10:20:00",
+      "from": "Emily",
+      "text": "I just ordered a pepperoni pizza for lunch."
+    },
+    {
+      "id": 6,
+      "type": "message",
+      "date": "2026-07-22T10:25:00",
+      "from": "SecResearcher",
+      "text": "Detected a new keylogger trojan exploiting zero-day vulnerability."
+    },
+    {
+      "id": 7,
+      "type": "message",
+      "date": "2026-07-22T10:30:00",
+      "from": "Dave",
+      "text": "The weather outside is very sunny today!"
+    }
+  ]
+}

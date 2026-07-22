@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Backend Dependencies
+        run: npm --prefix apps/backend install
+
+      - name: Install Frontend Dependencies
+        run: npm --prefix apps/frontend install
+
+      - name: Generate Prisma Client
+        run: npm --prefix apps/backend run prisma:generate
+
+      - name: Check Backend Types
+        run: npm --prefix apps/backend run build
+
+      - name: Check Frontend Types
+        run: npm --prefix apps/frontend run build
+
+  unit-tests:
+    name: Backend Jest Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Backend Dependencies
+        run: npm --prefix apps/backend install
+
+      - name: Generate Prisma Client
+        run: npm --prefix apps/backend run prisma:generate
+
+      - name: Run Backend Unit Tests
+        run: npm --prefix apps/backend run test

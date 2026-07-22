@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+apps/frontend/.next/
+apps/frontend/out/
+
+# NestJS
+apps/backend/dist/
+apps/backend/coverage/
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

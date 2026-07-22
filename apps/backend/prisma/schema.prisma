@@ -1,0 +1,36 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ExportBatch {
+  id           String    @id @default(uuid())
+  filename     String
+  channelName  String?
+  messageCount Int
+  status       String    @default("PROCESSING")
+  createdAt    DateTime  @default(now())
+  messages     Message[]
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  telegramId    String
+  date          DateTime
+  sender        String
+  text          String      @db.Text
+  replyToId     String?
+  qdrantPointId String?     @unique
+  batchId       String
+  batch         ExportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@index([telegramId])
+  @@index([date])
+  @@index([sender])
+  @@index([batchId])
+}
