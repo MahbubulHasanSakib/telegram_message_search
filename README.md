@@ -12,8 +12,19 @@ If you want to run and test the application immediately, make sure Docker is run
 docker compose up --build
 ```
 
-- 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000) (drag & drop your `messages.json` here to search!)
-- 📚 **API Swagger Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
+- 🏠 **Local Environment**:
+  - 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000) (drag & drop your `messages.json` here to search!)
+  - 📚 **API Swagger Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
+  - 🏥 **API Health Check**: [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)
+- 🌐 **Production Environment**:
+  - 💻 **Frontend Web App**: [https://telegram-message-search.vercel.app/](https://telegram-message-search.vercel.app/)
+  - 📚 **API Swagger Docs**: [https://telegram-message-search.onrender.com/api/docs](https://telegram-message-search.onrender.com/api/docs) (to get link any time for backend)
+
+### **Testing Flow**
+1. Open **[http://localhost:3000](http://localhost:3000)** (Local) or **[https://telegram-message-search.vercel.app/](https://telegram-message-search.vercel.app/)** (Production).
+2. Drag and drop your **`messages.json`** file into the upload zone.
+3. Click any **preset chips** (e.g. `"Find malware discussions"`) or type custom searches (e.g. `"DataCamp"`, `"meeting"`) to retrieve and filter your messages.
+4. Adjust the **Min Relevance Score** slider in *Advanced Search Filters* to refine matching results.
 
 ---
 
@@ -223,29 +234,6 @@ Run the script:
 python telegram_export.py
 ```
 This will log you in, prompt you for the verification code sent to your Telegram app, and save the exported chat as `messages.json` ready for uploading!
-
----
-
-## 🚀 Quick Start for Reviewers & Recruiters
-
-You can run the entire application stack (Frontend, Backend API, PostgreSQL Database) with a **single command**:
-
-```bash
-docker compose up --build
-```
-
-*(This automatically creates and structures your local PostgreSQL database, starts the Next.js frontend, NestJS backend, and activates the local in-memory Vector DB fallback).*
-
-Once running, access:
-- 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000) (drag & drop your `messages.json` here to search!)
-- 📚 **Backend OpenAPI Swagger Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
-- 🏥 **Backend Health Check**: [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)
-
-### **Testing Flow**
-1. Open **[http://localhost:3000](http://localhost:3000)**.
-2. Drag and drop your **`messages.json`** file into the upload zone.
-3. Click any **preset chips** (e.g. `"Find malware discussions"`) or type custom searches (e.g. `"DataCamp"`, `"meeting"`) to retrieve and filter your messages.
-4. Adjust the **Min Relevance Score** slider in *Advanced Search Filters* to refine matching results.
 
 ---
 
