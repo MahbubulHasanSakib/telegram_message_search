@@ -47,8 +47,10 @@ export class GroqEmbedderService implements IEmbedderService {
 
     // 2. Broad Threat & Semantic Category Clusters
     const drugKeywords = ['drug', 'drugs', 'cocaine', 'heroin', 'mdma', 'meth', 'substance', 'dealer', 'weed', 'pills', 'narcotics'];
-    const malwareKeywords = ['malware', 'ransomware', 'keylogger', 'trojan', 'exploit', 'payload', 'virus', 'botnet', 'backdoor', 'sample', 'campaign', 'zero-day'];
-    const suspiciousKeywords = ['suspicious', 'fraud', 'stolen', 'credit', 'card', 'cvv', 'bribe', 'scam', 'illegal', 'launder', 'bank', 'compromised', 'account', 'ransomware', 'malware', 'cocaine', 'payload'];
+    const malwareKeywords = ['malware', 'ransomware', 'keylogger', 'trojan', 'exploit', 'payload', 'virus', 'botnet', 'backdoor', 'zero-day'];
+    // Removed: 'ransomware', 'malware', 'cocaine', 'payload' (already in dedicated buckets above)
+    // Replaced generic 'card', 'bank', 'account' with specific fraud phrases to avoid false positives
+    const suspiciousKeywords = ['fraud', 'stolen', 'credit card', 'cvv', 'bribe', 'scam', 'illegal', 'launder', 'money laundering', 'compromised account', 'bank account', 'phishing'];
 
     // Category 1: Drugs (Dimensions 10..40)
     if (drugKeywords.some((kw) => cleaned.includes(kw))) {
