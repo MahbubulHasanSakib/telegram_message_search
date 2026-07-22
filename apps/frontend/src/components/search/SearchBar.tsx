@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { Search, Sparkles, X, Loader2 } from 'lucide-react';
 
 interface SearchBarProps {
@@ -18,17 +18,27 @@ const PRESET_QUERIES = [
 
 export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   const [query, setQuery] = useState('');
+  const [, startTransition] = useTransition();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      onSearch(query.trim());
+      startTransition(() => {
+        onSearch(query.trim());
+      });
     }
   };
 
   const handleSelectPreset = (preset: string) => {
     setQuery(preset);
-    onSearch(preset);
+    startTransition(() => {
+      onSearch(preset);
+    });
   };
 
   const handleClear = () => {
@@ -45,7 +55,7 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Ask a natural language query e.g. 'Find messages mentioning drugs'..."
             className="w-full pl-11 pr-24 py-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-base shadow-lg shadow-black/20"
           />
