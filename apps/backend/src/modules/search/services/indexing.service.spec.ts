@@ -5,6 +5,7 @@ import { QdrantService } from './qdrant.service';
 import { GroqEmbedderService } from './groq-embedder.service';
 import { EMBEDDER_SERVICE_TOKEN } from '../ports/embedder.service.interface';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../../database/prisma.service';
 
 describe('IndexingService', () => {
   let indexingService: IndexingService;
@@ -30,6 +31,12 @@ describe('IndexingService', () => {
     upsertVectors: jest.fn().mockResolvedValue(undefined),
   };
 
+  const mockPrismaService = {
+    message: {
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,6 +46,7 @@ describe('IndexingService', () => {
         { provide: QdrantService, useValue: mockQdrantService },
         { provide: EMBEDDER_SERVICE_TOKEN, useClass: GroqEmbedderService },
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue(undefined) } },
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
 
