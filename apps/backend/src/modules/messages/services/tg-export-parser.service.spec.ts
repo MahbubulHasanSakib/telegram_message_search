@@ -63,37 +63,34 @@ describe('TgExportParserService', () => {
   });
 
   describe('parseExportFile', () => {
-    it('should parse valid Telegram Desktop JSON export', async () => {
+    it('should parse valid Telethon-generated JSON export', async () => {
+      // Telethon script output format: object with name/type/id/messages and real from names
       const sampleExport = {
-        name: 'Darknet Intelligence Group',
-        type: 'public_supergroup',
+        name: 'IUC Data Science Research Group',
+        type: 'group',
         id: 1234567,
         messages: [
           {
             id: 101,
             type: 'message',
-            date: '2024-03-10T14:20:00',
-            date_unixtime: 1710080400,
-            from: 'TraderJoe',
-            from_id: 'user101',
-            text: 'We have pure MDMA and Cocaine available for shipping.',
+            date: '2024-03-10T14:20:00+00:00',
+            from: 'Mahbubul Hasan',
+            text: 'Research meeting of IDSRG tomorrow at 12pm in AI Lab.',
           },
           {
             id: 102,
             type: 'message',
-            date: '2024-03-10T14:25:00',
-            date_unixtime: 1710080700,
-            from: 'SecResearcher',
-            text: [
-              'New ransomware strain detected: ',
-              { type: 'bold', text: 'LockBit 3.0' },
-            ],
+            date: '2024-03-10T14:25:00+00:00',
+            from: 'Sakib Ahmed',
+            text: 'Assalamu alaikum. Will attend the meeting.',
             reply_to_message_id: 101,
           },
           {
             id: 103,
-            type: 'service', // Service message without text -> should be skipped
-            actor: 'System',
+            type: 'message',
+            date: '2024-03-10T14:30:00+00:00',
+            from: 'Ziaul Hoque',
+            text: '', // Empty text - should be skipped
           },
         ],
       };
@@ -104,11 +101,10 @@ describe('TgExportParserService', () => {
       const result = await service.parseExportFile(filePath, 'sample_export.json');
 
       expect(result).toBeDefined();
-      expect(result.channelName).toBe('Darknet Intelligence Group');
-      expect(result.totalParsedMessages).toBe(2);
-      expect(result.messages[0].sender).toBe('TraderJoe');
-      expect(result.messages[0].text).toBe('We have pure MDMA and Cocaine available for shipping.');
-      expect(result.messages[1].text).toBe('New ransomware strain detected: LockBit 3.0');
+      expect(result.channelName).toBe('IUC Data Science Research Group');
+      expect(result.totalParsedMessages).toBe(2); // empty text message is skipped
+      expect(result.messages[0].sender).toBe('Mahbubul Hasan');
+      expect(result.messages[0].text).toBe('Research meeting of IDSRG tomorrow at 12pm in AI Lab.');
       expect(result.messages[1].replyToMessageId).toBe('101');
     });
 
