@@ -87,6 +87,7 @@ export class QdrantService implements OnModuleInit {
 
     if (this.client) {
       try {
+        await this.ensureCollectionExists();
         await this.client.upsert(this.collectionName, {
           wait: true,
           points: points.map((p) => ({
@@ -117,6 +118,7 @@ export class QdrantService implements OnModuleInit {
   ): Promise<QdrantSearchResult[]> {
     if (this.client) {
       try {
+        await this.ensureCollectionExists();
         const mustFilters: any[] = [];
         if (filterSender) {
           mustFilters.push({
