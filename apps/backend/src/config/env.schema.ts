@@ -7,7 +7,6 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().optional(),
   QDRANT_URL: z.string().optional(),
   QDRANT_API_KEY: z.string().optional(),
-  GROQ_API_KEY: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

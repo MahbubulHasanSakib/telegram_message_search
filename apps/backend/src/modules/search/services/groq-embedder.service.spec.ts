@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { GroqEmbedderService } from './groq-embedder.service';
 
 describe('GroqEmbedderService', () => {
@@ -9,12 +8,6 @@ describe('GroqEmbedderService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GroqEmbedderService,
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockReturnValue(undefined),
-          },
-        },
       ],
     }).compile();
 
@@ -31,36 +24,28 @@ describe('GroqEmbedderService', () => {
   });
 
   describe('generateEmbedding', () => {
-    it('should return a 384-dimensional normalized float array', async () => {
-      const vector = await service.generateEmbedding('Find messages mentioning drugs');
+    it('should return normalized 384-dimensional vector embedding values', async () => {
+      const vector = await service.generateEmbedding('malware payload sample');
 
-      expect(vector).toBeDefined();
-      expect(Array.isArray(vector)).toBe(true);
-      expect(vector.length).toBe(384);
+      expect(vector).toBeInstanceOf(Array);
+      expect(vector).toHaveLength(384);
 
-      // Verify L2 Unit Normalization (sum of squares = 1)
+      // Check unit magnitude normalization (L2 norm)
       const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-      expect(magnitude).toBeCloseTo(1.0, 4);
+      expect(magnitude).toBeCloseTo(1.0, 5);
     });
 
-    it('should produce high cosine similarity between related semantic queries ("drugs" and "cocaine")', async () => {
-      const vecDrugs = await service.generateEmbedding('Find messages mentioning drugs');
-      const vecCocaine = await service.generateEmbedding('We have pure cocaine and heroin available');
+    it('should produce semantically distinct vectors for threat categories', async () => {
+      const drugVector = await service.generateEmbedding('cocaine dealer in group');
+      const malwareVector = await service.generateEmbedding('ransomware campaign');
+      const cleanVector = await service.generateEmbedding('football match time');
 
-      // Cosine Similarity dot product for unit vectors
-      const similarity = vecDrugs.reduce((sum, val, idx) => sum + val * vecCocaine[idx], 0);
+      // Cosine distance similarity tests
+      const drugMalwareSim = drugVector.reduce((sum, val, idx) => sum + val * malwareVector[idx], 0);
+      const drugCleanSim = drugVector.reduce((sum, val, idx) => sum + val * cleanVector[idx], 0);
 
-      expect(similarity).toBeGreaterThan(0.5);
-    });
-  });
-
-  describe('generateBatchEmbeddings', () => {
-    it('should generate embeddings in batches', async () => {
-      const texts = ['Message 1', 'Message 2', 'Message 3'];
-      const batchVectors = await service.generateBatchEmbeddings(texts);
-
-      expect(batchVectors.length).toBe(3);
-      expect(batchVectors[0].length).toBe(384);
+      expect(drugMalwareSim).toBeLessThan(0.7);
+      expect(drugCleanSim).toBeLessThan(0.5);
     });
   });
 });

@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { IEmbedderService } from '../ports/embedder.service.interface';
 
 @Injectable()
@@ -7,7 +6,7 @@ export class GroqEmbedderService implements IEmbedderService {
   private readonly logger = new Logger(GroqEmbedderService.name);
   private readonly vectorDim = 384;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor() {}
 
   enrichMessageText(sender: string, date: Date, text: string): string {
     const formattedDate = date instanceof Date && !isNaN(date.getTime())
