@@ -50,7 +50,7 @@ export class GroqEmbedderService implements IEmbedderService {
     const malwareKeywords = ['malware', 'ransomware', 'keylogger', 'trojan', 'exploit', 'payload', 'virus', 'botnet', 'backdoor', 'zero-day'];
     // Removed: 'ransomware', 'malware', 'cocaine', 'payload' (already in dedicated buckets above)
     // Replaced generic 'card', 'bank', 'account' with specific fraud phrases to avoid false positives
-    const suspiciousKeywords = ['fraud', 'stolen', 'credit card', 'cvv', 'bribe', 'scam', 'illegal', 'launder', 'money laundering', 'compromised account', 'bank account', 'phishing'];
+    const suspiciousKeywords = ['suspicious', 'fraud', 'stolen', 'credit card', 'cvv', 'bribe', 'scam', 'illegal', 'launder', 'money laundering', 'compromised account', 'bank account', 'phishing'];
 
     // Category 1: Drugs (Dimensions 10..40)
     if (drugKeywords.some((kw) => cleaned.includes(kw))) {
@@ -67,10 +67,6 @@ export class GroqEmbedderService implements IEmbedderService {
       for (let d = 90; d <= 120; d++) vector[d] += 25.0;
     }
 
-    // Cross-category semantic resonance: Malware & Fraud correlate strongly with "suspicious"
-    if (cleaned.includes('suspicious') || cleaned.includes('show suspicious messages')) {
-      for (let d = 50; d <= 120; d++) vector[d] += 10.0;
-    }
 
     // L2 Vector Normalization to unit length
     const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0)) || 1.0;
