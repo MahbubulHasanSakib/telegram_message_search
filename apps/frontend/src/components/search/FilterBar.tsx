@@ -1,22 +1,20 @@
 'use client';
 
 import React from 'react';
-import { SlidersHorizontal, RotateCcw, Calendar, User, Percent, Layers } from 'lucide-react';
+import { SlidersHorizontal, RotateCcw, Calendar, User, Percent } from 'lucide-react';
 import { SearchFilters } from '@/lib/api-client';
 
 interface FilterBarProps {
   filters: SearchFilters;
-  latestBatchId?: string;
   onChange: (filters: SearchFilters) => void;
   onReset: () => void;
 }
 
-export function FilterBar({ filters, latestBatchId, onChange, onReset }: FilterBarProps) {
+export function FilterBar({ filters, onChange, onReset }: FilterBarProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const activeCount = React.useMemo(() => {
     let count = 0;
-    if (filters.batchId) count++;
     if (filters.sender) count++;
     if (typeof filters.minRelevanceScore === 'number' && filters.minRelevanceScore > 0) count++;
     if (filters.startDate) count++;
@@ -24,64 +22,22 @@ export function FilterBar({ filters, latestBatchId, onChange, onReset }: FilterB
     return count;
   }, [filters]);
 
-  const isCurrentFileOnly = Boolean(filters.batchId && filters.batchId === latestBatchId);
-
-  const handleToggleScope = (scope: 'all' | 'current') => {
-    if (scope === 'current' && latestBatchId) {
-      onChange({ ...filters, batchId: latestBatchId });
-    } else {
-      const updated = { ...filters };
-      delete updated.batchId;
-      onChange(updated);
-    }
-  };
-
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
-            <span>Advanced Search Filters</span>
-            {activeCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">
-                {activeCount} active
-              </span>
-            )}
-          </button>
-
-          {/* Quick Scope Switcher */}
-          {latestBatchId && (
-            <div className="inline-flex items-center rounded-xl bg-slate-900 border border-slate-800 p-0.5 text-[11px] font-medium">
-              <button
-                type="button"
-                onClick={() => handleToggleScope('current')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  isCurrentFileOnly
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                📄 Current File
-              </button>
-              <button
-                type="button"
-                onClick={() => handleToggleScope('all')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  !filters.batchId
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                🌐 All Exports
-              </button>
-            </div>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+          <span>Advanced Search Filters</span>
+          {activeCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">
+              {activeCount} active
+            </span>
           )}
-        </div>
+        </button>
 
         {activeCount > 0 && (
           <button
@@ -134,20 +90,26 @@ export function FilterBar({ filters, latestBatchId, onChange, onReset }: FilterB
             />
           </div>
 
-          {/* Scope Selector */}
+          {/* Date Bounds */}
           <div className="space-y-1.5">
             <label className="flex items-center space-x-1 text-slate-400 font-medium">
-              <Layers className="w-3.5 h-3.5 text-blue-400" />
-              <span>Search Scope:</span>
+              <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <span>Start Date - End Date:</span>
             </label>
-            <select
-              value={filters.batchId ? 'current' : 'all'}
-              onChange={(e) => handleToggleScope(e.target.value as 'all' | 'current')}
-              className="w-full px-3 py-1.5 rounded-xl bg-slate-850 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
-            >
-              <option value="current">📄 Current Uploaded File Only</option>
-              <option value="all">🌐 All Historical Exports Combined</option>
-            </select>
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={filters.startDate || ''}
+                onChange={(e) => onChange({ ...filters, startDate: e.target.value })}
+                className="w-full px-2 py-1.5 rounded-xl bg-slate-850 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+              />
+              <input
+                type="date"
+                value={filters.endDate || ''}
+                onChange={(e) => onChange({ ...filters, endDate: e.target.value })}
+                className="w-full px-2 py-1.5 rounded-xl bg-slate-850 border border-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+              />
+            </div>
           </div>
         </div>
       )}
