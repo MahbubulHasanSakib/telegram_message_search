@@ -7,13 +7,15 @@ import { TgDropzone } from '@/components/uploader/TgDropzone';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterBar } from '@/components/search/FilterBar';
 import { ResultsList } from '@/components/results/ResultsList';
-import { searchMessages, SearchResponse, SearchFilters } from '@/lib/api-client';
+import { searchMessages, SearchResponse, SearchFilters, IndexResponse } from '@/lib/api-client';
 import { Sparkles, Info } from 'lucide-react';
 
 export default function HomePage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
+  // In-memory only — never persisted to sessionStorage (avoids stale batchId after DB wipe)
+  const [activeBatchId, setActiveBatchId] = useState<string | undefined>(undefined);
 
   const searchMutation = useMutation<SearchResponse, Error, { query: string; filters?: SearchFilters }>({
     mutationFn: ({ query, filters }) => searchMessages(query, filters),
@@ -24,13 +26,20 @@ export default function HomePage() {
 
   const handleSearch = (queryText: string) => {
     setCurrentQuery(queryText);
-    searchMutation.mutate({ query: queryText, filters });
+    // Always scope search to the currently uploaded file if one exists
+    const activeFilters: SearchFilters = activeBatchId
+      ? { ...filters, batchId: activeBatchId }
+      : filters;
+    searchMutation.mutate({ query: queryText, filters: activeFilters });
   };
 
   const handleFilterChange = (newFilters: SearchFilters) => {
     setFilters(newFilters);
     if (currentQuery) {
-      searchMutation.mutate({ query: currentQuery, filters: newFilters });
+      const activeFilters: SearchFilters = activeBatchId
+        ? { ...newFilters, batchId: activeBatchId }
+        : newFilters;
+      searchMutation.mutate({ query: currentQuery, filters: activeFilters });
     }
   };
 
@@ -38,14 +47,20 @@ export default function HomePage() {
     const cleared: SearchFilters = {};
     setFilters(cleared);
     if (currentQuery) {
-      searchMutation.mutate({ query: currentQuery, filters: cleared });
+      const activeFilters: SearchFilters = activeBatchId ? { batchId: activeBatchId } : {};
+      searchMutation.mutate({ query: currentQuery, filters: activeFilters });
     }
   };
 
-  const handleIndexComplete = () => {
+  const handleIndexComplete = (indexRes: IndexResponse) => {
+    // Set fresh batchId in memory from the just-completed upload
+    setActiveBatchId(indexRes.batchId);
     const defaultQuery = 'Show suspicious messages';
     setCurrentQuery(defaultQuery);
-    searchMutation.mutate({ query: defaultQuery, filters: {} });
+    searchMutation.mutate({
+      query: defaultQuery,
+      filters: { batchId: indexRes.batchId },
+    });
   };
 
   return (
