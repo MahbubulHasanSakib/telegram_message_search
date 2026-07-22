@@ -89,7 +89,7 @@ export default function HomePage() {
 
         {/* Search Bar & Filter Controls */}
         <section className="space-y-3">
-          <SearchBar onSearch={handleSearch} isLoading={searchMutation.isPending} />
+          <SearchBar onSearch={handleSearch} isLoading={searchMutation.isPending} value={currentQuery} />
           <FilterBar
             filters={filters}
             onChange={handleFilterChange}

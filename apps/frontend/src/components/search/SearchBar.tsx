@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { Search, Sparkles, X, Loader2 } from 'lucide-react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
   isLoading: boolean;
+  value?: string;
 }
 
 const PRESET_QUERIES = [
@@ -16,13 +17,18 @@ const PRESET_QUERIES = [
   'Financial fraud discussion',
 ];
 
-export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export function SearchBar({ onSearch, isLoading, value = '' }: SearchBarProps) {
+  const [query, setQuery] = useState(value);
   const [, startTransition] = useTransition();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  // Sync internal state when the value prop changes from parent
+  useEffect(() => {
     setQuery(value);
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setQuery(newVal);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,42 +69,37 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-28 pr-3 flex items-center text-slate-500 hover:text-slate-300"
+              className="absolute inset-y-0 right-32 pr-3 flex items-center text-slate-400 hover:text-slate-200"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
-
         <button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="absolute right-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm flex items-center space-x-2 shadow-md shadow-blue-500/20 transition-all"
+          className="absolute right-2 px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-850 disabled:text-slate-600 text-white font-medium transition-all flex items-center space-x-2 text-sm shadow-md"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
-              <span>Searching...</span>
-            </>
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <>
-              <Sparkles className="w-4 h-4 text-white" />
-              <span>AI Search</span>
-            </>
+            <Sparkles className="w-4 h-4" />
           )}
+          <span>AI Search</span>
         </button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-2 pt-1">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">
+      {/* Preset Queries list */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           Preset Queries:
         </span>
-        {PRESET_QUERIES.map((preset, idx) => (
+        {PRESET_QUERIES.map((preset) => (
           <button
-            key={idx}
+            key={preset}
             type="button"
             onClick={() => handleSelectPreset(preset)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-xs font-medium text-slate-300 hover:text-blue-400 transition-all duration-200"
+            className="px-3 py-1.5 rounded-xl border border-slate-850 bg-slate-900/40 text-slate-400 hover:text-slate-200 hover:border-slate-750 transition-all text-xs font-medium"
           >
             {preset}
           </button>
