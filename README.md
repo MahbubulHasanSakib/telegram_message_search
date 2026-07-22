@@ -234,10 +234,18 @@ You can run the entire application stack (Frontend, Backend API, PostgreSQL Data
 docker compose up --build
 ```
 
+*(This automatically creates and structures your local PostgreSQL database, starts the Next.js frontend, NestJS backend, and activates the local in-memory Vector DB fallback).*
+
 Once running, access:
-- 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000)
+- 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000) (drag & drop your `messages.json` here to search!)
 - 📚 **Backend OpenAPI Swagger Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
 - 🏥 **Backend Health Check**: [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)
+
+### **Testing Flow**
+1. Open **[http://localhost:3000](http://localhost:3000)**.
+2. Drag and drop your **`messages.json`** file into the upload zone.
+3. Click any **preset chips** (e.g. `"Find malware discussions"`) or type custom searches (e.g. `"DataCamp"`, `"meeting"`) to retrieve and filter your messages.
+4. Adjust the **Min Relevance Score** slider in *Advanced Search Filters* to refine matching results.
 
 ---
 
@@ -273,4 +281,27 @@ To retrieve relevant messages without external LLM API cost or network latency, 
      $$\text{Similarity Score} = \sum_{d=0}^{383} \left( \text{Query}[d] \times \text{Message}[d] \right)$$
    - Messages containing words like `"ransomware"` or `"trojan"` share the same Category 2 dimensions. This alignment yields a high similarity score (e.g., **99.6%**), which surfaces them as top matches!
    - Messages about weather or pizza align at different dimensions, yielding a low score (e.g. **19%**), and are automatically filtered out.
+
+---
+
+## 📖 Data Export, Semantic Search, & Tech Stack Architecture
+
+This section provides a technical overview of how data is extracted, how the semantic matching system operates under the hood, and the core frameworks used in this project.
+
+### **1. How the Telegram Data is Exported**
+- **Method**: Chat history is extracted using a custom Python CLI script powered by the **Telethon** library (detailed in the `📥 How to Export Telegram Chat History Using Telethon` section).
+- **Workflow**: The script connects to the official Telegram Client API via `api_id` and `api_hash`, fetches group dialogs interactively, reads message history (with sender display names and reply mappings), and outputs the data to the standard `messages.json` schema.
+
+### **2. How the Semantic Search Engine Operates**
+- **Vector Projection**: Both the search query and the uploaded messages are converted into a **384-dimensional dense coordinate vector** using the local `GroqEmbedderService`.
+- **Targeted Categorization**: To secure highly accurate category matching, coordinate bins are boosted by `+25.0` (Drugs = 10-40, Malware = 50-80, Fraud = 90-120). 
+- **Distance Calculations**: **Qdrant Vector DB** compares the vectors using **Cosine Similarity**. Because the queries and relevant messages activate the exact same dimensions, they result in a high score (99%+) and are returned as matches, while unrelated topics are filtered out.
+
+### **3. Frameworks, Tools, & Libraries Used**
+- **Vector Database**: **Qdrant Cloud** (with a high-performance offline local-memory vector store fallback).
+- **Core Frameworks**: **NestJS (Node.js)** for the backend REST API and **Next.js 14/15 App Router** for the frontend interface.
+- **Relational Database**: **PostgreSQL** via **Prisma ORM** for persistent storage of parsed JSON batches and message metadata.
+- **Validation & Quality**: **Jest** (for unit and integration test coverage), **Zod** (for runtime upload schema validation), and **Docker Compose** (for multi-container orchestration).
+
+---
 
