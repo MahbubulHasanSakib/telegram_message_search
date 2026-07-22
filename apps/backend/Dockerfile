@@ -8,20 +8,20 @@ WORKDIR /app
 # Install OpenSSL for Prisma Alpine engine support
 RUN apk add --no-cache openssl
 
-# Copy root and backend files (supporting both root build context and apps/backend build context)
+# Copy root and backend package files
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
-COPY prisma ./apps/backend/prisma/
-COPY apps/backend/prisma* ./apps/backend/prisma/
+COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install backend dependencies
-RUN if [ -d "apps/backend" ]; then npm --prefix apps/backend install; else npm install; fi
+RUN npm --prefix apps/backend install
 
 # Copy source code
-COPY . .
+COPY apps/backend ./apps/backend
 
 # Generate Prisma Client & Build NestJS App
-RUN if [ -d "apps/backend" ]; then npm --prefix apps/backend run prisma:generate && npm --prefix apps/backend run build; else npx prisma generate --schema=prisma/schema.prisma && npm run build; fi
+RUN npm --prefix apps/backend run prisma:generate
+RUN npm --prefix apps/backend run build
 
 # ==========================================
 # STAGE 2: Production Runtime Stage
