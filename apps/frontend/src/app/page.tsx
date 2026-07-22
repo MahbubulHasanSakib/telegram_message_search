@@ -7,13 +7,14 @@ import { TgDropzone } from '@/components/uploader/TgDropzone';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterBar } from '@/components/search/FilterBar';
 import { ResultsList } from '@/components/results/ResultsList';
-import { searchMessages, SearchResponse, SearchFilters } from '@/lib/api-client';
+import { searchMessages, SearchResponse, SearchFilters, IndexResponse } from '@/lib/api-client';
 import { Sparkles, Info } from 'lucide-react';
 
 export default function HomePage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
+  const [latestBatchId, setLatestBatchId] = useState<string | undefined>(undefined);
 
   const searchMutation = useMutation<SearchResponse, Error, { query: string; filters?: SearchFilters }>({
     mutationFn: ({ query, filters }) => searchMessages(query, filters),
@@ -42,10 +43,13 @@ export default function HomePage() {
     }
   };
 
-  const handleIndexComplete = () => {
+  const handleIndexComplete = (indexRes: IndexResponse) => {
+    setLatestBatchId(indexRes.batchId);
+    const batchScopedFilters: SearchFilters = { ...filters, batchId: indexRes.batchId };
+    setFilters(batchScopedFilters);
     const defaultQuery = 'Show suspicious messages';
     setCurrentQuery(defaultQuery);
-    searchMutation.mutate({ query: defaultQuery, filters });
+    searchMutation.mutate({ query: defaultQuery, filters: batchScopedFilters });
   };
 
   return (
@@ -77,6 +81,7 @@ export default function HomePage() {
           <SearchBar onSearch={handleSearch} isLoading={searchMutation.isPending} />
           <FilterBar
             filters={filters}
+            latestBatchId={latestBatchId}
             onChange={handleFilterChange}
             onReset={handleResetFilters}
           />

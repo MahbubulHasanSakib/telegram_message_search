@@ -34,6 +34,7 @@ export interface SearchResponse {
 
 export interface SearchFilters {
   sender?: string;
+  batchId?: string;
   minRelevanceScore?: number;
   startDate?: string;
   endDate?: string;
@@ -80,6 +81,7 @@ export async function searchMessages(
     query,
     limit: filters?.limit || 50,
     sender: filters?.sender || undefined,
+    batchId: filters?.batchId || undefined,
     minRelevanceScore: filters?.minRelevanceScore || undefined,
     startDate: filters?.startDate || undefined,
     endDate: filters?.endDate || undefined,

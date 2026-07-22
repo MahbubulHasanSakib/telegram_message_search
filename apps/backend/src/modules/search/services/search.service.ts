@@ -17,11 +17,11 @@ export class SearchService {
   async search(dto: SearchQueryDto): Promise<SearchResponseDto> {
     const startTime = Date.now();
     const limit = dto.limit || 50;
-    // Default minimum relevance threshold to filter out low-confidence unrelated items like weather
+    // Default minimum relevance threshold to filter out low-confidence unrelated items
     const minThreshold = typeof dto.minRelevanceScore === 'number' ? dto.minRelevanceScore : 35.0;
 
     this.logger.log(
-      `Executing AI search query: "${dto.query}" (Sender: ${dto.sender || 'Any'}, MinScore: ${minThreshold}%)`,
+      `Executing AI search query: "${dto.query}" (Sender: ${dto.sender || 'Any'}, Batch: ${dto.batchId || 'All'}, MinScore: ${minThreshold}%)`,
     );
 
     // 1. Generate 384-dim query vector
@@ -32,6 +32,7 @@ export class SearchService {
       queryVector,
       limit * 3,
       dto.sender,
+      dto.batchId,
     );
 
     // 3. Map vector results & apply minRelevanceScore threshold
@@ -48,7 +49,7 @@ export class SearchService {
       };
     });
 
-    // 4. Deduplicate identical messages from multiple uploads
+    // 4. Deduplicate identical messages
     const seenTexts = new Set<string>();
     results = results.filter((item) => {
       const key = `${item.sender}:${item.text.trim()}`;
@@ -57,7 +58,7 @@ export class SearchService {
       return true;
     });
 
-    // 5. Filter out low-relevance items below threshold (filters out 17.7% weather noise)
+    // 5. Filter out low-relevance items below threshold
     results = results.filter((r) => r.relevanceScore >= minThreshold);
 
     // 6. Apply Date Range filters if provided

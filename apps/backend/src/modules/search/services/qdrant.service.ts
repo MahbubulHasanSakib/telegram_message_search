@@ -34,29 +34,32 @@ export class QdrantService implements OnModuleInit {
   private client?: QdrantClient;
   private readonly collectionName = 'telegram_messages';
   private readonly vectorSize = 384;
+  private readonly localMemoryStore = new Map<string, QdrantVectorPoint>();
 
-  // Local fallback storage for offline test/dev environments
-  private readonly localMemoryStore: Map<string, QdrantVectorPoint> = new Map();
+  constructor(private readonly configService: ConfigService) {}
 
-  constructor(private readonly configService: ConfigService) {
-    const url = this.configService.get<string>('QDRANT_URL');
-    const apiKey = this.configService.get<string>('QDRANT_API_KEY');
+  async onModuleInit() {
+    const qdrantUrl = this.configService.get<string>('QDRANT_URL');
+    const qdrantApiKey = this.configService.get<string>('QDRANT_API_KEY');
 
-    if (url && url !== 'https://xxx-xxx.qdrant.tech') {
-      this.client = new QdrantClient({
-        url,
-        apiKey: apiKey !== 'your-qdrant-api-key' ? apiKey : undefined,
-      });
+    if (qdrantUrl && qdrantApiKey && qdrantApiKey !== 'your-qdrant-api-key') {
+      try {
+        this.client = new QdrantClient({
+          url: qdrantUrl,
+          apiKey: qdrantApiKey,
+        });
+        await this.ensureCollectionExists();
+        this.logger.log('Connected to Qdrant Cloud Vector Database.');
+      } catch (error) {
+        this.logger.warn(`Failed to connect to Qdrant Cloud: ${(error as Error).message}. Utilizing local vector store.`);
+      }
+    } else {
+      this.logger.log('Qdrant Cloud credentials not present. Utilizing high-performance local vector store.');
     }
   }
 
-  async onModuleInit() {
-    await this.ensureCollection();
-  }
-
-  async ensureCollection(): Promise<void> {
+  private async ensureCollectionExists(): Promise<void> {
     if (!this.client) {
-      this.logger.log('Qdrant Cloud credentials not present. Utilizing high-performance local vector store.');
       return;
     }
 
@@ -110,23 +113,28 @@ export class QdrantService implements OnModuleInit {
     queryVector: number[],
     limit: number = 50,
     filterSender?: string,
+    filterBatchId?: string,
   ): Promise<QdrantSearchResult[]> {
     if (this.client) {
       try {
-        const filter: any = {};
+        const mustFilters: any[] = [];
         if (filterSender) {
-          filter.must = [
-            {
-              key: 'sender',
-              match: { value: filterSender },
-            },
-          ];
+          mustFilters.push({
+            key: 'sender',
+            match: { value: filterSender },
+          });
+        }
+        if (filterBatchId) {
+          mustFilters.push({
+            key: 'batchId',
+            match: { value: filterBatchId },
+          });
         }
 
         const results = await this.client.search(this.collectionName, {
           vector: queryVector,
           limit,
-          filter: Object.keys(filter).length > 0 ? filter : undefined,
+          filter: mustFilters.length > 0 ? { must: mustFilters } : undefined,
           with_payload: true,
         });
 
@@ -145,6 +153,9 @@ export class QdrantService implements OnModuleInit {
 
     for (const point of this.localMemoryStore.values()) {
       if (filterSender && point.payload.sender !== filterSender) {
+        continue;
+      }
+      if (filterBatchId && point.payload.batchId !== filterBatchId) {
         continue;
       }
 

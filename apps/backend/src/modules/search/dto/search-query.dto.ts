@@ -31,6 +31,15 @@ export class SearchQueryDto {
   sender?: string;
 
   @ApiProperty({
+    example: 'a51315eb-4458-4cb8-8eee-5c4a25417dea',
+    required: false,
+    description: 'Filter by specific upload batch ID',
+  })
+  @IsOptional()
+  @IsString()
+  batchId?: string;
+
+  @ApiProperty({
     example: 70,
     required: false,
     description: 'Minimum relevance score percentage threshold (0-100%)',
