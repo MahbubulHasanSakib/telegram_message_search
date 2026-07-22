@@ -4,6 +4,19 @@ An enterprise full-stack AI application for uploading Telegram channel/group exp
 
 ---
 
+## ⚡ Quick Run Instructions (Run in 30 seconds!)
+
+If you want to run and test the application immediately, make sure Docker is running on your machine and execute:
+
+```bash
+docker compose up --build
+```
+
+- 💻 **Frontend Web App**: [http://localhost:3000](http://localhost:3000) (drag & drop your `messages.json` here to search!)
+- 📚 **API Swagger Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
+
+---
+
 ## 🌟 Key Application Features
 
 - **🤖 AI Semantic Vector Search**: Converts Telegram chat messages into 384-dimensional dense vector embeddings using Cosine Distance similarity matching in Qdrant Vector Engine.
