@@ -53,8 +53,8 @@ export function SearchBar({ onSearch, isLoading, value = '' }: SearchBarProps) {
 
   return (
     <div className="w-full space-y-4">
-      <form onSubmit={handleSubmit} className="relative flex items-center w-full">
-        <div className="relative w-full">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+        <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="w-5 h-5 text-slate-400" />
           </div>
@@ -63,13 +63,13 @@ export function SearchBar({ onSearch, isLoading, value = '' }: SearchBarProps) {
             value={query}
             onChange={handleInputChange}
             placeholder="Ask a natural language query e.g. 'Find messages mentioning drugs'..."
-            className="w-full pl-11 pr-24 py-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-base shadow-lg shadow-black/20"
+            className="w-full pl-11 pr-10 py-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-base shadow-lg shadow-black/20"
           />
           {query && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-32 pr-3 flex items-center text-slate-400 hover:text-slate-200"
+              className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -78,12 +78,12 @@ export function SearchBar({ onSearch, isLoading, value = '' }: SearchBarProps) {
         <button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="absolute right-2 px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-850 disabled:text-slate-600 text-white font-medium transition-all flex items-center space-x-2 text-sm shadow-md"
+          className="px-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-850 disabled:text-slate-600 text-white font-semibold transition-all flex items-center justify-center space-x-2 text-base shadow-md shrink-0 sm:w-auto w-full"
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-5 h-5" />
           )}
           <span>AI Search</span>
         </button>
