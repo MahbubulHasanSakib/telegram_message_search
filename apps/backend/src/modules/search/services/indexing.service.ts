@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { MessagesService } from '../../messages/messages.service';
 import { QdrantService, QdrantVectorPoint } from './qdrant.service';
 import { IEmbedderService, EMBEDDER_SERVICE_TOKEN } from '../ports/embedder.service.interface';
+import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class IndexingService {
@@ -13,6 +14,7 @@ export class IndexingService {
     @Inject(EMBEDDER_SERVICE_TOKEN)
     private readonly embedderService: IEmbedderService,
     private readonly qdrantService: QdrantService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async parseAndIndexExport(filename: string) {
@@ -65,6 +67,25 @@ export class IndexingService {
 
     // 4. Upsert point vectors into Qdrant Vector Index
     await this.qdrantService.upsertVectors(points);
+
+    // 5. Link Qdrant Vector Point IDs back into PostgreSQL Message table
+    try {
+      await Promise.all(
+        points.map((pt) =>
+          this.prisma.message.updateMany({
+            where: {
+              batchId,
+              telegramId: String(pt.payload.telegramId),
+            },
+            data: {
+              qdrantPointId: String(pt.id),
+            },
+          }),
+        ),
+      );
+    } catch (updateError) {
+      this.logger.warn(`Notice: Could not link qdrantPointId to PostgreSQL: ${(updateError as Error).message}`);
+    }
 
     this.logger.log(
       `Successfully indexed batch ${batchId}: ${points.length} vectors stored in Vector Engine.`,
