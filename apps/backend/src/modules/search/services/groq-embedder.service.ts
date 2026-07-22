@@ -54,17 +54,17 @@ export class GroqEmbedderService implements IEmbedderService {
 
     // Category 1: Drugs (Dimensions 10..40)
     if (drugKeywords.some((kw) => cleaned.includes(kw))) {
-      for (let d = 10; d <= 40; d++) vector[d] += 15.0;
+      for (let d = 10; d <= 40; d++) vector[d] += 25.0;
     }
 
     // Category 2: Malware & Cyber Threats (Dimensions 50..80)
     if (malwareKeywords.some((kw) => cleaned.includes(kw))) {
-      for (let d = 50; d <= 80; d++) vector[d] += 15.0;
+      for (let d = 50; d <= 80; d++) vector[d] += 25.0;
     }
 
     // Category 3: Suspicious & Financial Fraud (Dimensions 90..120)
     if (suspiciousKeywords.some((kw) => cleaned.includes(kw))) {
-      for (let d = 90; d <= 120; d++) vector[d] += 15.0;
+      for (let d = 90; d <= 120; d++) vector[d] += 25.0;
     }
 
     // Cross-category semantic resonance: Malware & Fraud correlate strongly with "suspicious"
