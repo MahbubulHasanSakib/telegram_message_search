@@ -1,19 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/common/Header';
 import { TgDropzone } from '@/components/uploader/TgDropzone';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterBar } from '@/components/search/FilterBar';
 import { ResultsList } from '@/components/results/ResultsList';
-import { searchMessages, SearchResponse, SearchFilters } from '@/lib/api-client';
+import { searchMessages, SearchResponse, SearchFilters, IndexResponse } from '@/lib/api-client';
 import { Sparkles, Info } from 'lucide-react';
 
 export default function HomePage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [currentBatchId, setCurrentBatchId] = useState<string | undefined>(undefined);
   const [filters, setFilters] = useState<SearchFilters>({});
+
+  // Restore current file batchId from sessionStorage if page is refreshed
+  useEffect(() => {
+    const savedBatchId = sessionStorage.getItem('active_tg_export_batch_id');
+    if (savedBatchId) {
+      setCurrentBatchId(savedBatchId);
+      setFilters((prev) => ({ ...prev, batchId: savedBatchId }));
+    }
+  }, []);
 
   const searchMutation = useMutation<SearchResponse, Error, { query: string; filters?: SearchFilters }>({
     mutationFn: ({ query, filters }) => searchMessages(query, filters),
@@ -24,28 +34,43 @@ export default function HomePage() {
 
   const handleSearch = (queryText: string) => {
     setCurrentQuery(queryText);
-    searchMutation.mutate({ query: queryText, filters });
+    const activeFilters: SearchFilters = {
+      ...filters,
+      batchId: currentBatchId || filters.batchId,
+    };
+    searchMutation.mutate({ query: queryText, filters: activeFilters });
   };
 
   const handleFilterChange = (newFilters: SearchFilters) => {
-    setFilters(newFilters);
+    const activeFilters: SearchFilters = {
+      ...newFilters,
+      batchId: currentBatchId || newFilters.batchId,
+    };
+    setFilters(activeFilters);
     if (currentQuery) {
-      searchMutation.mutate({ query: currentQuery, filters: newFilters });
+      searchMutation.mutate({ query: currentQuery, filters: activeFilters });
     }
   };
 
   const handleResetFilters = () => {
-    const cleared: SearchFilters = {};
+    const cleared: SearchFilters = { batchId: currentBatchId };
     setFilters(cleared);
     if (currentQuery) {
       searchMutation.mutate({ query: currentQuery, filters: cleared });
     }
   };
 
-  const handleIndexComplete = () => {
+  const handleIndexComplete = (indexRes: IndexResponse) => {
+    const newBatchId = indexRes.batchId;
+    setCurrentBatchId(newBatchId);
+    sessionStorage.setItem('active_tg_export_batch_id', newBatchId);
+
+    const activeFilters: SearchFilters = { ...filters, batchId: newBatchId };
+    setFilters(activeFilters);
+
     const defaultQuery = 'Show suspicious messages';
     setCurrentQuery(defaultQuery);
-    searchMutation.mutate({ query: defaultQuery, filters });
+    searchMutation.mutate({ query: defaultQuery, filters: activeFilters });
   };
 
   return (
