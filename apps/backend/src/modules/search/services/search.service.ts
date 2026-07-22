@@ -17,8 +17,8 @@ export class SearchService {
   async search(dto: SearchQueryDto): Promise<SearchResponseDto> {
     const startTime = Date.now();
     const limit = dto.limit || 50;
-    // Default minimum relevance threshold to filter out low-confidence unrelated items
-    const minThreshold = typeof dto.minRelevanceScore === 'number' ? dto.minRelevanceScore : 35.0;
+    // Default minimum relevance threshold (15.0%)
+    const minThreshold = typeof dto.minRelevanceScore === 'number' ? dto.minRelevanceScore : 15.0;
 
     this.logger.log(
       `Executing AI search query: "${dto.query}" (Sender: ${dto.sender || 'Any'}, Batch: ${dto.batchId || 'All'}, MinScore: ${minThreshold}%)`,
