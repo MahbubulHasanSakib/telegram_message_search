@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import { ParsedTelegramMessage, ParseExportResultDto } from '../domain/telegram-message.domain';
-import { TgExportJsonSchema, RawTgMessage, RawTextEntity } from '../schemas/tg-export.schema';
+import { TgExportJsonSchema, TelethonArraySchema, RawTgMessage, RawTextEntity } from '../schemas/tg-export.schema';
 
 @Injectable()
 export class TgExportParserService {
@@ -12,13 +12,30 @@ export class TgExportParserService {
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const rawJson = JSON.parse(fileContent);
 
-      const parsedJson = TgExportJsonSchema.safeParse(rawJson);
-      if (!parsedJson.success) {
-        this.logger.error(`Zod validation failed for file ${fileId}: ${parsedJson.error.message}`);
-        throw new BadRequestException(`Invalid Telegram JSON structure: ${parsedJson.error.issues[0]?.message}`);
-      }
+      let rawMessages: RawTgMessage[];
+      let channelName: string | undefined;
 
-      const { name: channelName, messages: rawMessages } = parsedJson.data;
+      // Auto-detect format: Telethon exports a root array, Telegram Desktop exports an object
+      if (Array.isArray(rawJson)) {
+        // Format 2: Telethon CLI array export
+        this.logger.log(`Detected Telethon CLI array format for file ${fileId}`);
+        const parsed = TelethonArraySchema.safeParse(rawJson);
+        if (!parsed.success) {
+          throw new BadRequestException(`Invalid Telethon JSON structure: ${parsed.error.issues[0]?.message}`);
+        }
+        rawMessages = parsed.data;
+        channelName = 'Telethon Export';
+      } else {
+        // Format 1: Standard Telegram Desktop object export
+        this.logger.log(`Detected Telegram Desktop object format for file ${fileId}`);
+        const parsedJson = TgExportJsonSchema.safeParse(rawJson);
+        if (!parsedJson.success) {
+          this.logger.error(`Zod validation failed for file ${fileId}: ${parsedJson.error.message}`);
+          throw new BadRequestException(`Invalid Telegram JSON structure: ${parsedJson.error.issues[0]?.message}`);
+        }
+        rawMessages = parsedJson.data.messages;
+        channelName = parsedJson.data.name;
+      }
 
       const parsedMessages: ParsedTelegramMessage[] = [];
 
@@ -28,7 +45,7 @@ export class TgExportParserService {
           continue;
         }
 
-        const normalizedText = this.normalizeText(rawMsg.text);
+        const normalizedText = this.normalizeText(rawMsg.text ?? undefined);
         if (!normalizedText || normalizedText.trim().length === 0) {
           continue; // Skip messages with empty text (e.g. sticker only / photo without caption)
         }
@@ -87,6 +104,8 @@ export class TgExportParserService {
   normalizeSender(msg: RawTgMessage): string {
     if (msg.from && msg.from.trim().length > 0) return msg.from.trim();
     if (msg.actor && msg.actor.trim().length > 0) return msg.actor.trim();
+    // Telethon format uses sender_id (numeric) — display as user_<id>
+    if (msg.sender_id) return `user_${msg.sender_id}`;
     if (msg.from_id) return `user_${msg.from_id}`;
     if (msg.actor_id) return `user_${msg.actor_id}`;
     return 'Unknown Sender';
