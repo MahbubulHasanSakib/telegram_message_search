@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GroqEmbedderService } from './groq-embedder.service';
+import { LocalEmbedderService } from './local-embedder.service';
 
-describe('GroqEmbedderService', () => {
-  let service: GroqEmbedderService;
+describe('LocalEmbedderService', () => {
+  let service: LocalEmbedderService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GroqEmbedderService,
+        LocalEmbedderService,
       ],
     }).compile();
 
-    service = module.get<GroqEmbedderService>(GroqEmbedderService);
+    service = module.get<LocalEmbedderService>(LocalEmbedderService);
   });
 
   describe('enrichMessageText', () => {

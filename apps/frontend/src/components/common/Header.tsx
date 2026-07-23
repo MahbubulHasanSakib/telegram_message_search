@@ -22,7 +22,7 @@ export function Header() {
         <div className="flex items-center space-x-2 sm:space-x-3 self-end sm:self-auto">
           <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Groq + Qdrant Cloud</span>
+            <span>AI Embedder + Qdrant Cloud</span>
           </div>
 
           <div className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] sm:text-xs font-medium text-emerald-400">

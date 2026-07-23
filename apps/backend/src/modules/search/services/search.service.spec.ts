@@ -1,24 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SearchService } from './search.service';
 import { QdrantService, QdrantVectorPoint } from './qdrant.service';
-import { GroqEmbedderService } from './groq-embedder.service';
+import { LocalEmbedderService } from './local-embedder.service';
 import { EMBEDDER_SERVICE_TOKEN } from '../ports/embedder.service.interface';
 import { ConfigService } from '@nestjs/config';
 
 describe('SearchService AI Query Pipeline & Advanced Filters', () => {
   let searchService: SearchService;
   let qdrantService: QdrantService;
-  let embedderService: GroqEmbedderService;
+  let embedderService: LocalEmbedderService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SearchService,
         QdrantService,
-        GroqEmbedderService,
+        LocalEmbedderService,
         {
           provide: EMBEDDER_SERVICE_TOKEN,
-          useClass: GroqEmbedderService,
+          useClass: LocalEmbedderService,
         },
         {
           provide: ConfigService,
@@ -29,7 +29,7 @@ describe('SearchService AI Query Pipeline & Advanced Filters', () => {
 
     searchService = module.get<SearchService>(SearchService);
     qdrantService = module.get<QdrantService>(QdrantService);
-    embedderService = module.get<GroqEmbedderService>(GroqEmbedderService);
+    embedderService = module.get<LocalEmbedderService>(LocalEmbedderService);
 
     await qdrantService.onModuleInit();
   });

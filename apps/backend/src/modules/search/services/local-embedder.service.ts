@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { IEmbedderService } from '../ports/embedder.service.interface';
 
 @Injectable()
-export class GroqEmbedderService implements IEmbedderService {
-  private readonly logger = new Logger(GroqEmbedderService.name);
+export class LocalEmbedderService implements IEmbedderService {
+  private readonly logger = new Logger(LocalEmbedderService.name);
   private readonly vectorDim = 384;
 
   constructor() {}
@@ -48,8 +48,6 @@ export class GroqEmbedderService implements IEmbedderService {
     // 2. Broad Threat & Semantic Category Clusters
     const drugKeywords = ['drug', 'drugs', 'cocaine', 'heroin', 'mdma', 'meth', 'substance', 'dealer', 'weed', 'pills', 'narcotics'];
     const malwareKeywords = ['malware', 'ransomware', 'keylogger', 'trojan', 'exploit', 'payload', 'virus', 'botnet', 'backdoor', 'zero-day'];
-    // Removed: 'ransomware', 'malware', 'cocaine', 'payload' (already in dedicated buckets above)
-    // Replaced generic 'card', 'bank', 'account' with specific fraud phrases to avoid false positives
     const suspiciousKeywords = ['suspicious', 'fraud', 'stolen', 'credit card', 'cvv', 'bribe', 'scam', 'illegal', 'launder', 'money laundering', 'compromised account', 'bank account', 'phishing'];
 
     // Category 1: Drugs (Dimensions 10..40)
@@ -66,7 +64,6 @@ export class GroqEmbedderService implements IEmbedderService {
     if (suspiciousKeywords.some((kw) => cleaned.includes(kw))) {
       for (let d = 90; d <= 120; d++) vector[d] += 25.0;
     }
-
 
     // L2 Vector Normalization to unit length
     const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0)) || 1.0;

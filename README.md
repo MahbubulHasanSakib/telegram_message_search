@@ -281,7 +281,7 @@ This section provides a technical overview of how data is extracted, how the sem
 - **Workflow**: The script connects to the official Telegram Client API via `api_id` and `api_hash`, fetches group dialogs interactively, reads message history (with sender display names and reply mappings), and outputs the data to the standard `messages.json` schema.
 
 ### **2. How the Semantic Search Engine Operates**
-- **Vector Projection**: Both the search query and the uploaded messages are converted into a **384-dimensional dense coordinate vector** using the local `GroqEmbedderService`.
+- **Vector Projection**: Both the search query and the uploaded messages are converted into a **384-dimensional dense coordinate vector** using the local `LocalEmbedderService`.
 - **Targeted Categorization**: To secure highly accurate category matching, coordinate bins are boosted by `+25.0` (Drugs = 10-40, Malware = 50-80, Fraud = 90-120). 
 - **Distance Calculations**: **Qdrant Vector DB** compares the vectors using **Cosine Similarity**. Because the queries and relevant messages activate the exact same dimensions, they result in a high score (99%+) and are returned as matches, while unrelated topics are filtered out.
 

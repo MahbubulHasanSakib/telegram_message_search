@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { GroqEmbedderService } from './services/groq-embedder.service';
+import { LocalEmbedderService } from './services/local-embedder.service';
 import { QdrantService } from './services/qdrant.service';
 import { SearchService } from './services/search.service';
 import { IndexingService } from './services/indexing.service';
@@ -11,15 +11,15 @@ import { MessagesModule } from '../messages/messages.module';
   imports: [MessagesModule],
   controllers: [SearchController],
   providers: [
-    GroqEmbedderService,
+    LocalEmbedderService,
     QdrantService,
     SearchService,
     IndexingService,
     {
       provide: EMBEDDER_SERVICE_TOKEN,
-      useClass: GroqEmbedderService,
+      useClass: LocalEmbedderService,
     },
   ],
-  exports: [GroqEmbedderService, QdrantService, SearchService, IndexingService, EMBEDDER_SERVICE_TOKEN],
+  exports: [LocalEmbedderService, QdrantService, SearchService, IndexingService, EMBEDDER_SERVICE_TOKEN],
 })
 export class SearchModule {}

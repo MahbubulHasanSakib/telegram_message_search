@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IndexingService } from './indexing.service';
 import { MessagesService } from '../../messages/messages.service';
 import { QdrantService } from './qdrant.service';
-import { GroqEmbedderService } from './groq-embedder.service';
+import { LocalEmbedderService } from './local-embedder.service';
 import { EMBEDDER_SERVICE_TOKEN } from '../ports/embedder.service.interface';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
@@ -41,10 +41,10 @@ describe('IndexingService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IndexingService,
-        GroqEmbedderService,
+        LocalEmbedderService,
         { provide: MessagesService, useValue: mockMessagesService },
         { provide: QdrantService, useValue: mockQdrantService },
-        { provide: EMBEDDER_SERVICE_TOKEN, useClass: GroqEmbedderService },
+        { provide: EMBEDDER_SERVICE_TOKEN, useClass: LocalEmbedderService },
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue(undefined) } },
         { provide: PrismaService, useValue: mockPrismaService },
       ],
