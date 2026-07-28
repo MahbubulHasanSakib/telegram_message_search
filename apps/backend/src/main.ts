@@ -11,9 +11,38 @@ async function bootstrap() {
   // Use Pino Logger
   app.useLogger(app.get(Logger));
 
-  // Enable CORS
+  // Enable CORS with support for multiple origins and trailing slash normalization
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://telegram-message-search.vercel.app',
+  ];
+
+  if (process.env.FRONTEND_URL) {
+    const rawUrl = process.env.FRONTEND_URL.trim();
+    const cleanUrl = rawUrl.replace(/\/$/, '');
+    if (!allowedOrigins.includes(rawUrl)) allowedOrigins.push(rawUrl);
+    if (!allowedOrigins.includes(cleanUrl)) allowedOrigins.push(cleanUrl);
+  }
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const normalizedOrigin = origin.trim().replace(/\/$/, '');
+      const isAllowed =
+        allowedOrigins.some((allowed) => allowed.replace(/\/$/, '') === normalizedOrigin) ||
+        normalizedOrigin.endsWith('.vercel.app');
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   });
 
