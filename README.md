@@ -317,7 +317,7 @@ flowchart TD
     Embedder -->|4. Upsert Vectors| Qdrant
 
     API -->|1. Vectorize Search Query| Embedder
-    API -->|2. Vector Search (Cosine Similarity)| Qdrant
+    API -->|"2. Vector Search (Cosine Similarity)"| Qdrant
     Qdrant -->|3. Return Point IDs & Scores| API
     API -->|4. Resolve Message Metadata| Postgres
     API -->|5. Return Ranked Results| Frontend
