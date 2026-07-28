@@ -5,6 +5,7 @@ An enterprise full-stack AI application for uploading Telegram channel/group exp
 ![Telegram Intelligence Search Live UI](assets/telegram_search_ui.png)
 
 ### **📚 Table of Contents**
+- [📥 **Download Recruiter PowerPoint Presentation (PPTX)**](docs/project_flow_presentation.pptx)
 - [📊 **Recruiter Slide Deck (Project Flow Walkthrough)**](#-recruiter-slide-deck-how-the-system-works-interactive)
 - [⚡ Quick Run Instructions (Run in 30 Seconds)](#-quick-run-instructions-run-in-30-seconds)
 - [🌟 Key Application Features](#-key-application-features)
@@ -67,6 +68,8 @@ docker compose up --build
 
 > [!NOTE]
 > *This slide deck is designed for recruiters and engineering managers to quickly understand the system's architecture, data flows, and technical decisions. Click on each slide below to expand and read.*
+
+📥 **[Download the PowerPoint Slide Deck (PPTX)](docs/project_flow_presentation.pptx)** to view the presentation slides locally on your machine!
 
 <details>
 <summary><b>🛝 Slide 1: The Problem & The Solution (Click to Expand)</b></summary>
