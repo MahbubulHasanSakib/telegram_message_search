@@ -276,6 +276,53 @@ To retrieve relevant messages without external LLM API cost or network latency, 
 
 This section provides a technical overview of how data is extracted, how the semantic matching system operates under the hood, and the core frameworks used in this project.
 
+### **System Architecture Diagram**
+
+Below is the high-level architecture flowchart showing the data ingestion, indexing, and vector similarity querying pipelines:
+
+```mermaid
+flowchart TD
+    %% Styling Definitions
+    classDef client fill:#f5e0dc,stroke:#f2cdcd,color:#11111b,stroke-width:2px;
+    classDef api fill:#b4befe,stroke:#89b4fa,color:#11111b,stroke-width:2px;
+    classDef db fill:#a6e3a1,stroke:#94e2d5,color:#11111b,stroke-width:2px;
+
+    %% Nodes
+    Telegram["Telegram Cloud API"]:::client
+    Telethon["Telethon Python Script<br/>(telegram_export.py)"]:::client
+    JSON["Export File<br/>(messages.json)"]:::client
+    Frontend["Next.js Web Frontend<br/>(React UI & Tailwind)"]:::client
+
+    subgraph Backend ["NestJS Application Server"]
+        API["Search Controller / API Gateway"]:::api
+        Indexer["Indexing Service<br/>(Zod Validation & Parsing)"]:::api
+        Embedder["Local Embedder Service<br/>(384-d Coordinate Mapper)"]:::api
+    end
+
+    subgraph Storage ["Database / Storage Layer"]
+        Postgres[("PostgreSQL (Neon Cloud)<br/>Relational Metadata Store")]:::db
+        Qdrant[("Qdrant Vector DB<br/>Cosine Similarity Index")]:::db
+    end
+
+    %% Flows
+    Telegram -->|Extract Data| Telethon
+    Telethon -->|Generates| JSON
+    JSON -->|Upload File| Frontend
+    Frontend -->|POST /upload| API
+    Frontend -->|GET /search| API
+
+    API -->|1. Validate & Parse| Indexer
+    Indexer -->|2. Store Batches & Messages| Postgres
+    Indexer -->|3. Vectorize Messages| Embedder
+    Embedder -->|4. Upsert Vectors| Qdrant
+
+    API -->|1. Vectorize Search Query| Embedder
+    API -->|2. Vector Search (Cosine Similarity)| Qdrant
+    Qdrant -->|3. Return Point IDs & Scores| API
+    API -->|4. Resolve Message Metadata| Postgres
+    API -->|5. Return Ranked Results| Frontend
+```
+
 ### **1. How the Telegram Data is Exported**
 - **Method**: Chat history is extracted using a custom Python CLI script powered by the **Telethon** library (detailed in the `📥 How to Export Telegram Chat History Using Telethon` section).
 - **Workflow**: The script connects to the official Telegram Client API via `api_id` and `api_hash`, fetches group dialogs interactively, reads message history (with sender display names and reply mappings), and outputs the data to the standard `messages.json` schema.
