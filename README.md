@@ -81,7 +81,19 @@ docker compose up --build
 </details>
 
 <details>
-<summary><b>🛝 Slide 2: High-Level System Architecture (Click to Expand)</b></summary>
+<summary><b>🛝 Slide 2: Rich Application Features (Click to Expand)</b></summary>
+<br/>
+
+* **🤖 Semantic AI Querying**: Maps natural language queries to coordinates (e.g. searching "threats" surfaces Zero-day exploits).
+* **⚡ Preset Intel Chips**: Single-click presets search threat categories (Malware, Drugs, Fraud, Suspicious messages).
+* **📁 File Scope Switcher**: Instantly toggle search focus between *"Current Upload Only"* and *"All Historical Exports"*.
+* **🎛️ Dynamic Relevance Slider**: Adjustable threshold filter (0% - 95%) that isolates semantic matches from noise.
+* **📊 Rich Result Cards**: Displays timestamp, sender handles, context threads (replies), and precise AI match percentages.
+* **⏱️ Performance Indicator**: Real-time query execution latency counter (always sub-10ms) showing database efficiency.
+</details>
+
+<details>
+<summary><b>🛝 Slide 3: Decoupled System Architecture (Click to Expand)</b></summary>
 <br/>
 
 The application is structured as a robust, decoupled **three-tier architecture**:
@@ -101,19 +113,34 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🛝 Slide 3: The Data Ingestion & Indexing Pipeline (Click to Expand)</b></summary>
+<summary><b>🛝 Slide 4: Data Ingestion & DB Write Flow (Click to Expand)</b></summary>
 <br/>
 
-When a user uploads a `messages.json` file, the following pipeline executes:
+When a user uploads a `messages.json` file, the following write pipeline executes under the hood:
 
-1. **Ingestion & Validation**: Next.js POSTs the file to NestJS. The file content is parsed and validated using a structured **Zod schema** (`tg-export.schema.ts`) to ensure safety.
-2. **Relational Sync**: The file metadata and raw messages are saved to PostgreSQL (generating primary keys and links).
-3. **Local Vectorization**: A custom `LocalEmbedderService` maps the message content into a 384-dimensional coordinate space instantly.
-4. **Vector Indexing**: The generated vectors (along with payload IDs) are upserted into **Qdrant Vector DB**, establishing a cosine similarity index.
+1. **Ingestion Request**: Next.js POSTs raw 'messages.json' multipart form data to NestJS API endpoint (`/messages/upload`).
+2. **Zod Validation**: NestJS parses the JSON and validates it against a structured export schema to prevent malformed payloads.
+3. **Relational Sync**: A database transaction creates a unique `ExportBatch` ID and stores all message records in PostgreSQL via Prisma.
+4. **Local Vectorization**: A custom `LocalEmbedderService` maps the message content into a 384-dimensional coordinate space instantly.
+5. **Qdrant Vector Ingest**: Generated embeddings, alongside PostgreSQL message IDs, are upserted into Qdrant Cloud Vector Database.
 </details>
 
 <details>
-<summary><b>🛝 Slide 4: Under the Hood: Semantic Coordinate Mapping (Click to Expand)</b></summary>
+<summary><b>🛝 Slide 5: Semantic Search Query Flow (Click to Expand)</b></summary>
+<br/>
+
+When a user performs a search query, the following execution pipeline is triggered:
+
+1. **Search POST request**: Next.js submits search payload containing query text, score threshold, date range, and sender filter.
+2. **Query Vectorization**: NestJS converts search query text into a 384-dimensional vector using the local embedding coordinates model.
+3. **Similarity Search**: Qdrant executes cosine distance calculations matching query against all database vectors.
+4. **Point Resolution**: Qdrant returns top matching vector point IDs matching the query vector alongside similarity coefficients.
+5. **Relational Metadata Sync**: NestJS queries PostgreSQL to resolve point IDs to get matching message text, handles, dates, and thread replies.
+6. **Filtering & Sorting**: Results are filtered by criteria (dates, min score, handle) and returned to the client as a ranked array.
+</details>
+
+<details>
+<summary><b>🛝 Slide 6: Under the Hood: Semantic Coordinate Mapping (Click to Expand)</b></summary>
 <br/>
 
 Unlike heavy external LLM calls (e.g. OpenAI), this app uses a lightweight **local embedding model** optimized for fast execution:
@@ -122,15 +149,17 @@ Unlike heavy external LLM calls (e.g. OpenAI), this app uses a lightweight **loc
 * **Cosine Similarity**: The system calculates the similarity score using:
   $$\text{Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}$$
   This returns a score from `0%` to `100%` indicating relevance, allowing the backend to surface highly accurate semantic matches in less than 10 milliseconds.
+* **Offline Vectorization**: Eliminates network latency, API costs, and third-party dependencies.
 </details>
 
 <details>
-<summary><b>🛝 Slide 5: Key Technical Choices & Rationale (Click to Expand)</b></summary>
+<summary><b>🛝 Slide 7: Technical Choices & Rationale (Click to Expand)</b></summary>
 <br/>
 
-* **Why NestJS (Backend)?** Enterprise-grade architecture out of the box, dependency injection, and clean module separation.
-* **Why Dual-Database (Postgres + Qdrant)?** PostgreSQL is the source of truth for message metadata, user accounts, and relationships. Qdrant handles high-dimensional vector search. Linking them via IDs gets the best of both worlds.
-* **Why Local Embedder?** Eliminates network latency, API costs, and dependency on external services, ensuring the app remains fast and free to run.
+* **Why Dual-Database (Postgres + Qdrant)**: PostgreSQL guarantees relational integrity and ACID compliance for message metadata. Qdrant handles high-dimensional vector search. Linking them via IDs gets the best of both worlds.
+* **Why NestJS (Backend)**: Enterprise-grade architecture out of the box, dependency injection, and clean module separation.
+* **Why Local Embedder**: Eliminates network latency, API costs, and dependency on external services, ensuring the app remains fast and free to run.
+* **Why Zod Schema**: Catches parsing bugs at the ingress point rather than letting corrupted JSON trigger errors inside databases.
 </details>
 
 ---
