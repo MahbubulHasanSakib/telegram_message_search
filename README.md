@@ -2,6 +2,8 @@
 
 An enterprise full-stack AI application for uploading Telegram channel/group export JSON files and performing natural-language semantic searches (e.g. searching *"Find messages mentioning drugs"* surfaces *"cocaine"*, *"heroin"*, *"MDMA"* with 90%+ AI relevance scores).
 
+![Telegram Intelligence Search Live UI](assets/telegram_search_ui.png)
+
 ---
 
 ## ⚡ Quick Run Instructions (Run in 30 seconds!)
