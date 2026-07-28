@@ -4,6 +4,15 @@ An enterprise full-stack AI application for uploading Telegram channel/group exp
 
 ![Telegram Intelligence Search Live UI](assets/telegram_search_ui.png)
 
+### **📚 Table of Contents**
+- [📊 **Recruiter Slide Deck (Project Flow Walkthrough)**](#-recruiter-slide-deck-how-the-system-works)
+- [⚡ Quick Run Instructions (Run in 30 Seconds)](#-quick-run-instructions-run-in-30-seconds)
+- [🌟 Key Application Features](#-key-application-features)
+- [📄 Telegram Export JSON File Format Guide](#-telegram-export-json-file-format-guide)
+- [📥 How to Export Telegram Chat History Using Telethon](#-how-to-export-telegram-chat-history-using-telethon)
+- [🧠 How the AI Vector Search Works (Semantic Mapping)](#-how-the-ai-vector-search-works-semantic-coordinate-mapping)
+- [📖 Data Export, Semantic Search, & Tech Stack Architecture](#-data-export-semantic-search--tech-stack-architecture)
+
 ---
 
 ## ⚡ Quick Run Instructions (Run in 30 seconds!)
@@ -51,6 +60,63 @@ docker compose up --build
   - **Neon PostgreSQL Cloud DB**: Authoritative relational data (`ExportBatch` and `Message` tables with `replyToId` and `qdrantPointId` linkages).
   - **Qdrant Cloud Vector DB**: Sub-10ms vector similarity index.
 - **🛡️ Monorepo Engineering**: Built with TypeScript, Next.js 14/15 App Router, NestJS, Prisma ORM, Zod, Pino Logger, OpenAPI Swagger (`/api/docs`), Docker Compose, and GitHub Actions CI/CD.
+
+---
+
+## 📊 Recruiter Slide Deck: How the System Works
+
+> [!NOTE]
+> *This slide deck is designed for recruiters and engineering managers to quickly understand the system's architecture, data flows, and technical decisions in 2 minutes.*
+
+### 🛝 Slide 1: The Problem & The Solution
+* **The Challenge**: Telegram export files contain tens of thousands of unstructured messages. Traditional keyword matching (like `Ctrl+F`) fails to catch synonyms, spelling variations, or encoded jargon (e.g., searching for *"drugs"* won't find *"cocaine"*, *"MDMA"*, or *"payload"*).
+* **The Solution**: An AI-powered full-stack search engine that maps words/phrases into a shared vector space, enabling instant semantic search (understanding the *meaning* and *context* of messages, not just literal character matches).
+* **Target Audience**: Security compliance officers, threat intelligence researchers, and chat moderators.
+
+---
+
+### 🛝 Slide 2: High-Level System Architecture
+The application is structured as a robust, decoupled **three-tier architecture**:
+
+```mermaid
+flowchart LR
+    A[Next.js Frontend] <-->|REST API| B[NestJS API Server]
+    B <-->|Prisma ORM| C[(PostgreSQL Metadata)]
+    B <-->|Qdrant Client| D[(Qdrant Vector DB)]
+```
+
+* **Client Tier**: A Next.js web application built with React & Tailwind CSS. Features drag-and-drop file ingestion, dynamic search filter tuning, and latency metrics.
+* **Server Tier**: A NestJS API gateway handling validation, request routing, local embedding generation, and DB coordination.
+* **Storage Tier**: 
+  * **Relational**: PostgreSQL (Neon Cloud) for message schemas, batch IDs, handles, and timestamps.
+  * **Vector**: Qdrant Cloud for 384-dimensional dense semantic coordinates.
+
+---
+
+### 🛝 Slide 3: The Data Ingestion & Indexing Pipeline
+When a user uploads a `messages.json` file, the following pipeline executes:
+
+1. **Ingestion & Validation**: Next.js POSTs the file to NestJS. The file content is parsed and validated using a structured **Zod schema** (`tg-export.schema.ts`) to ensure safety.
+2. **Relational Sync**: The file metadata and raw messages are saved to PostgreSQL (generating primary keys and links).
+3. **Local Vectorization**: A custom `LocalEmbedderService` maps the message content into a 384-dimensional coordinate space instantly.
+4. **Vector Indexing**: The generated vectors (along with payload IDs) are upserted into **Qdrant Vector DB**, establishing a cosine similarity index.
+
+---
+
+### 🛝 Slide 4: Under the Hood: Semantic Coordinate Mapping
+Unlike heavy external LLM calls (e.g. OpenAI), this app uses a lightweight **local embedding model** optimized for fast execution:
+
+* **Category Clustering**: Coordinates are mapped into dedicated semantic bins (e.g., dimensions 10-40 boost drugs, 50-80 boost malware).
+* **Cosine Similarity**: The system calculates the similarity score using:
+  $$\text{Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}$$
+  This returns a score from `0%` to `100%` indicating relevance, allowing the backend to surface highly accurate semantic matches in less than 10 milliseconds.
+
+---
+
+### 🛝 Slide 5: Key Technical Choices & Rationale
+* **Why NestJS (Backend)?** Enterprise-grade architecture out of the box, dependency injection, and clean module separation.
+* **Why Dual-Database (Postgres + Qdrant)?** PostgreSQL is the source of truth for message metadata, user accounts, and relationships. Qdrant handles high-dimensional vector search. Linking them via IDs gets the best of both worlds.
+* **Why Local Embedder?** Eliminates network latency, API costs, and dependency on external services, ensuring the app remains fast and free to run.
 
 ---
 
